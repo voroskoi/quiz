@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"./quiz"
+	"github.com/voroskoi/quiz"
 )
 
 func main() {
