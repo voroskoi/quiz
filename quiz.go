@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func readquiz(quizfile *string) ([][]string, error) {
@@ -27,6 +28,9 @@ func Start(quizfile *string) error {
 	if err != nil {
 		return err
 	}
+
+	timer := time.NewTimer(3 * time.Second)
+
 	var questions, correct int
 	for i, line := range lines {
 		if len(line) != 2 {
@@ -34,15 +38,27 @@ func Start(quizfile *string) error {
 			continue
 		}
 		fmt.Printf("Question (%d): %s\n", i, line[0])
-		var ans string
-		_, err = fmt.Scanln(&ans)
-		if err != nil {
-			log.Printf("Error reading the answer: %s", err)
-		}
-		if ans == line[1] {
-			correct++
-		}
 		questions++
+
+		ansCh := make(chan string)
+		go func() {
+			var ans string
+			_, err = fmt.Scanf("%s\n", &ans)
+			if err != nil {
+				log.Printf("Error reading the answer: %s", err)
+			}
+			ansCh <- ans
+		}()
+
+		select {
+		case <-timer.C:
+			fmt.Printf("Time is up! Questions asked: %d, right answer: %d\n", questions, correct)
+			return nil
+		case ans := <-ansCh:
+			if ans == line[1] {
+				correct++
+			}
+		}
 	}
 	fmt.Printf("Questions asked: %d, right answer: %d\n", questions, correct)
 	return nil
