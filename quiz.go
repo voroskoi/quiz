@@ -9,6 +9,7 @@ import (
 
 func readquiz(quizfile *string) ([][]string, error) {
 	file, err := os.Open(*quizfile)
+	defer file.Close()
 	if err != nil {
 		return nil, fmt.Errorf("error opening the quiz file: %s", err)
 	}
